@@ -48,35 +48,28 @@ public class OptimisticStoppableAuction {
 
     public boolean propose(Bid bid) {
         System.out.println(Thread.currentThread() + " propose " + bid);
-        boolean success;
         Bid oldBid;
-        boolean newBidSucceeded;
 
         do {
             if (latestBid.isMarked()) {
                 System.out.println(bid + " is rejected because auction is stopped");
                 return false;
             }
+
             oldBid = latestBid.getReference();
-
-            if (oldBid.getPrice() < bid.getPrice()) {
-                success = latestBid.compareAndSet(oldBid, bid, false, false);
-                newBidSucceeded = true;
-            } else {
-                success = true;
-                newBidSucceeded = false;
+            if (oldBid.getPrice() > bid.getPrice()) {
+                return false;
             }
-        } while (!success);
+        } while (!latestBid.compareAndSet(oldBid, bid, false, false));
 
-        if (newBidSucceeded) {
-            notifier.sendOutdatedMessage(oldBid);
-        }
-        return newBidSucceeded;
+        notifier.sendOutdatedMessage(oldBid);
+        return true;
     }
 
     // останавливает аукцион. Заявки больше не принимаются
     public void stopAuction() {
         latestBid.set(latestBid.getReference(), true);
+        System.out.println("auction is stopped");
     }
 
     public Bid getLatestBid() {

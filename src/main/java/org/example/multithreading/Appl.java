@@ -18,13 +18,12 @@ public class Appl {
 //        final ExecutorService executorService = Executors.newFixedThreadPool(100);
 //
 //        OptimisticAuction auction = new OptimisticAuction();
-//        final List<Long> participants = List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
-//        final List<Long> prices = List.of(100L, 200L, 150L, 300L, 900L, 500L, 220L, 560L, 800L, 700L);
-//        for (int i = 0; i < 10; i++) {
+//        final List<Long> participants = List.of(1L, 2L);//, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
+//        final List<Long> prices = List.of(15L, 20L);//, 150L, 300L, 900L, 500L, 220L, 560L, 800L, 700L);
+//        for (int i = 0; i < 2; i++) {
 //            OptimisticAuction.Bid bid =  new OptimisticAuction.Bid((long) i, participants.get(i), prices.get(i));
 //            executorService.execute(() -> auction.propose(bid));
 //        }
-//        executorService.execute(() -> auction.propose(new OptimisticAuction.Bid(1L, 3L, 550L)));
 //        executorService.shutdownNow();
 //
 //        Thread.sleep(1000);
@@ -39,7 +38,10 @@ public class Appl {
         for (int i = 0; i < 10; i++) {
             OptimisticStoppableAuction.Bid bid =  new OptimisticStoppableAuction.Bid((long) i, participants.get(i), prices.get(i));
             executorService.execute(() -> auction.propose(bid));
-            if (i == 7) auction.stopAuction();
+            if (i == 7) {
+                Thread.sleep(500);
+                auction.stopAuction();
+            }
         }
         executorService.execute(() -> auction.propose(new OptimisticStoppableAuction.Bid(1L, 3L, 550L)));
         executorService.shutdownNow();

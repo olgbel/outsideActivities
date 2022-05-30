@@ -14,8 +14,8 @@ public class AuctionTests {
     private int poolSize = 8;
     private int bidCount = iterations * poolSize;
 
-//    private OptimisticAuction auction = new OptimisticAuction();
-    private PessimisticDoubleCheckAuction auction = new PessimisticDoubleCheckAuction();
+    private OptimisticAuction auction = new OptimisticAuction();
+//    private PessimisticDoubleCheckAuction auction = new PessimisticDoubleCheckAuction();
     private ExecutorService executor;
     private BlockingQueue<Long> priceQueue;
     private long expectedPrice;
@@ -46,8 +46,8 @@ public class AuctionTests {
 
                 for (int it = 0; it < iterations; it++) {
                     long value = priceQueue.poll();
-//                    OptimisticAuction.Bid bid = new OptimisticAuction.Bid(value, value, value);
-                    PessimisticDoubleCheckAuction.Bid bid = new PessimisticDoubleCheckAuction.Bid(value, value, value);
+                    OptimisticAuction.Bid bid = new OptimisticAuction.Bid(value, value, value);
+//                    PessimisticDoubleCheckAuction.Bid bid = new PessimisticDoubleCheckAuction.Bid(value, value, value);
                     auction.propose(bid);
                     // эмулируем запросы на чтение
                     if (it % 200 == 0) {
