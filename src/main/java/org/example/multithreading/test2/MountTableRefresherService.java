@@ -3,6 +3,7 @@ package org.example.multithreading.test2;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class MountTableRefresherService {
 
@@ -21,7 +22,7 @@ public class MountTableRefresherService {
      */
     private ScheduledExecutorService clientCacheCleanerScheduler;
 
-    public void serviceInit()  {
+    public void serviceInit() {
         long routerClientMaxLiveTime = 15L;
         this.cacheUpdateTimeout = 10L;
         routerClientsCache = new Others.LoadingCache<>();
@@ -58,7 +59,7 @@ public class MountTableRefresherService {
     /**
      * Refresh mount table cache of this router as well as all other routers.
      */
-    public void refresh()  {
+    public void refresh() {
         List<Others.RouterState> cachedRecords = routerStore.getCachedRecords();
         List<MountTableRefresherThread> refreshThreads = new ArrayList<>();
         for (Others.RouterState routerState : cachedRecords) {
@@ -92,26 +93,23 @@ public class MountTableRefresherService {
     }
 
     private void invokeRefresh(List<MountTableRefresherThread> refreshThreads) {
-        CountDownLatch countDownLatch = new CountDownLatch(refreshThreads.size());
-        // start all the threads
-        for (MountTableRefresherThread refThread : refreshThreads) {
-            refThread.setCountDownLatch(countDownLatch);
-            refThread.start();
-        }
+        List<CompletableFuture<MountTableRefresherThread>> completableFutures = refreshThreads.stream()
+                .map(refreshThread -> CompletableFuture.supplyAsync(() -> {
+                    refreshThread.start();
+                    return refreshThread;
+                }))
+                .collect(Collectors.toList());
+
         try {
-            /*
-             * Wait for all the thread to complete, await method returns false if
-             * refresh is not finished within specified time
-             */
-            boolean allReqCompleted =
-                    countDownLatch.await(cacheUpdateTimeout, TimeUnit.MILLISECONDS);
-            if (!allReqCompleted) {
-                System.out.println("Not all router admins updated their cache");
-            }
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+                    .thenApply(future -> completableFutures.stream().map(CompletableFuture::join).collect(Collectors.toList()))
+                    .thenAccept(this::logResult)
+                    .get();
         } catch (InterruptedException e) {
             System.out.println("Mount table cache refresher was interrupted.");
+        } catch (ExecutionException e) {
+            System.out.println("Not all router admins updated their cache");
         }
-        logResult(refreshThreads);
     }
 
     private boolean isLocalAdmin(String adminAddress) {

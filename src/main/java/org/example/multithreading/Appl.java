@@ -29,25 +29,25 @@ public class Appl {
 //        Thread.sleep(1000);
 //        System.out.println("latest bid: " + auction.getLatestBid());
 
-        // test optimistic stoppable auction
-        final ExecutorService executorService = Executors.newFixedThreadPool(100);
-
-        OptimisticStoppableAuction auction = new OptimisticStoppableAuction();
-        final List<Long> participants = List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
-        final List<Long> prices = List.of(100L, 200L, 150L, 300L, 900L, 500L, 220L, 560L, 800L, 700L);
-        for (int i = 0; i < 10; i++) {
-            OptimisticStoppableAuction.Bid bid =  new OptimisticStoppableAuction.Bid((long) i, participants.get(i), prices.get(i));
-            executorService.execute(() -> auction.propose(bid));
-            if (i == 7) {
-                Thread.sleep(500);
-                auction.stopAuction();
-            }
-        }
-        executorService.execute(() -> auction.propose(new OptimisticStoppableAuction.Bid(1L, 3L, 550L)));
-        executorService.shutdownNow();
-
-        Thread.sleep(1000);
-        System.out.println("latest bid: " + auction.getLatestBid());
+//        // test optimistic stoppable auction
+//        final ExecutorService executorService = Executors.newFixedThreadPool(100);
+//
+//        OptimisticStoppableAuction auction = new OptimisticStoppableAuction();
+//        final List<Long> participants = List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
+//        final List<Long> prices = List.of(100L, 200L, 150L, 300L, 900L, 500L, 220L, 560L, 800L, 700L);
+//        for (int i = 0; i < 10; i++) {
+//            OptimisticStoppableAuction.Bid bid =  new OptimisticStoppableAuction.Bid((long) i, participants.get(i), prices.get(i));
+//            executorService.execute(() -> auction.propose(bid));
+//            if (i == 7) {
+//                Thread.sleep(500);
+//                auction.stopAuction();
+//            }
+//        }
+//        executorService.execute(() -> auction.propose(new OptimisticStoppableAuction.Bid(1L, 3L, 550L)));
+//        executorService.shutdownNow();
+//
+//        Thread.sleep(1000);
+//        System.out.println("latest bid: " + auction.getLatestBid());
 
 
 //        RestaurantSearchService restaurantSearchService = new RestaurantSearchService();
@@ -68,17 +68,6 @@ public class Appl {
 //        orderService.updatePaymentInfo(1, new PaymentInfo());
 
 //        System.out.println(orderService.getCurrentOrders());
-
-
-//        ThreadPoolExecutor executor = new ThreadPoolExecutor(8, 8, 1, TimeUnit.SECONDS, new SynchronousQueue<>(), new ThreadPoolExecutor.DiscardPolicy());
-//
-//        for (int i = 0; i < 9; i++) {
-//            final int k = i;
-//            executor.execute(() -> System.out.println(k));
-//        }
-//
-//        Thread.sleep(1000);
-//        executor.shutdown();
 
 
     }

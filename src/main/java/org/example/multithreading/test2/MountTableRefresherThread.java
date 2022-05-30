@@ -1,13 +1,12 @@
 package org.example.multithreading.test2;
 
-import java.util.concurrent.CountDownLatch;
-
 public class MountTableRefresherThread extends Thread {
 
-    private boolean success;
-    /** Admin server on which refreshed to be invoked. */
+    private volatile boolean success;
+    /**
+     * Admin server on which refreshed to be invoked.
+     */
     private String adminAddress;
-    private CountDownLatch countDownLatch;
     private Others.MountTableManager manager;
 
     public MountTableRefresherThread(Others.MountTableManager manager,
@@ -32,11 +31,7 @@ public class MountTableRefresherThread extends Thread {
      */
     @Override
     public void run() {
-        try {
-            success = manager.refresh();
-        } finally {
-            countDownLatch.countDown();
-        }
+        success = manager.refresh();
     }
 
     /**
@@ -46,14 +41,9 @@ public class MountTableRefresherThread extends Thread {
         return success;
     }
 
-    public void setCountDownLatch(CountDownLatch countDownLatch) {
-        this.countDownLatch = countDownLatch;
-    }
-
     @Override
     public String toString() {
-        return "MountTableRefreshThread [success=" + success + ", adminAddress="
-                + adminAddress + "]";
+        return "MountTableRefreshThread [success=" + success + ", adminAddress=" + adminAddress + "]";
     }
 
     public String getAdminAddress() {
