@@ -20,6 +20,10 @@ public class PessimisticDoubleCheckAuction {
             this.price = price;
         }
 
+        public Long getPrice() {
+            return price;
+        }
+
         @Override
         public String toString() {
             return "Bid{" +

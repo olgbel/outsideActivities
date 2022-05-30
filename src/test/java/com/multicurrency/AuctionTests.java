@@ -1,6 +1,7 @@
 package com.multicurrency;
 
 import org.example.multithreading.test1.OptimisticAuction;
+import org.example.multithreading.test1.PessimisticDoubleCheckAuction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,8 @@ public class AuctionTests {
     private int poolSize = 8;
     private int bidCount = iterations * poolSize;
 
-    private OptimisticAuction auction = new OptimisticAuction();
+//    private OptimisticAuction auction = new OptimisticAuction();
+    private PessimisticDoubleCheckAuction auction = new PessimisticDoubleCheckAuction();
     private ExecutorService executor;
     private BlockingQueue<Long> priceQueue;
     private long expectedPrice;
@@ -44,7 +46,8 @@ public class AuctionTests {
 
                 for (int it = 0; it < iterations; it++) {
                     long value = priceQueue.poll();
-                    OptimisticAuction.Bid bid = new OptimisticAuction.Bid(value, value, value);
+//                    OptimisticAuction.Bid bid = new OptimisticAuction.Bid(value, value, value);
+                    PessimisticDoubleCheckAuction.Bid bid = new PessimisticDoubleCheckAuction.Bid(value, value, value);
                     auction.propose(bid);
                     // эмулируем запросы на чтение
                     if (it % 200 == 0) {
@@ -56,7 +59,7 @@ public class AuctionTests {
 
         latch.countDown();
         executor.shutdown();
-        executor.awaitTermination(10, TimeUnit.SECONDS);
+        executor.awaitTermination(100, TimeUnit.SECONDS);
         long end = System.currentTimeMillis();
 
         assertEquals(expectedPrice, auction.getLatestBid().getPrice());
