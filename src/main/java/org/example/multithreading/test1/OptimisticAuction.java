@@ -1,7 +1,6 @@
 package org.example.multithreading.test1;
 
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.atomic.AtomicStampedReference;
 
 /*
     Когда участник аукциона выставляет заявку, он вызывает метод propose
@@ -21,6 +20,10 @@ public class OptimisticAuction {
             this.id = id;
             this.participantId = participantId;
             this.price = price;
+        }
+
+        public Long getPrice() {
+            return price;
         }
 
         @Override
@@ -44,16 +47,21 @@ public class OptimisticAuction {
     private final AtomicReference<Bid> latestBid = new AtomicReference<>(new Bid(1L, 0L, 0L));
 
     public boolean propose(Bid bid) {
-        Bid oldBid;
+        Bid oldBid, newBid;
+
         do {
             oldBid = latestBid.get();
+            newBid = oldBid;
+
             if (bid.price > oldBid.price) {
-                latestBid.set(bid);
-                notifier.sendOutdatedMessage(oldBid);
-                return true;
+                newBid = bid;
             }
-        } while (latestBid.compareAndSet(oldBid, bid));
-        return false;
+        } while (!latestBid.compareAndSet(oldBid, newBid));
+
+        if (newBid.equals(bid)) {
+            notifier.sendOutdatedMessage(oldBid);
+            return true;
+        } else return false;
     }
 
     public Bid getLatestBid() {
