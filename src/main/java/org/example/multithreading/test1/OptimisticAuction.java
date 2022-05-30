@@ -53,7 +53,6 @@ public class OptimisticAuction {
                 return true;
             }
         } while (latestBid.compareAndSet(oldBid, bid));
-        notifier.sendOutdatedMessage(oldBid);
         return false;
     }
 
