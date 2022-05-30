@@ -47,21 +47,18 @@ public class OptimisticAuction {
     private final AtomicReference<Bid> latestBid = new AtomicReference<>(new Bid(1L, 0L, 0L));
 
     public boolean propose(Bid bid) {
-        Bid oldBid, newBid;
+        Bid oldBid;
 
         do {
             oldBid = latestBid.get();
-            newBid = oldBid;
 
-            if (bid.price > oldBid.price) {
-                newBid = bid;
+            if (bid.price < oldBid.price) {
+                return false;
             }
-        } while (!latestBid.compareAndSet(oldBid, newBid));
+        } while (!latestBid.compareAndSet(oldBid, bid));
 
-        if (newBid.equals(bid)) {
-            notifier.sendOutdatedMessage(oldBid);
-            return true;
-        } else return false;
+        notifier.sendOutdatedMessage(oldBid);
+        return true;
     }
 
     public Bid getLatestBid() {
