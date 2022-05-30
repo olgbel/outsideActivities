@@ -1,6 +1,6 @@
 package org.example.multithreading.test1;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicMarkableReference;
 
 /*
     Когда участник аукциона выставляет заявку, он вызывает метод propose
@@ -22,6 +22,10 @@ public class OptimisticStoppableAuction {
             this.price = price;
         }
 
+        public Long getPrice() {
+            return price;
+        }
+
         @Override
         public String toString() {
             return "Bid{" +
@@ -40,39 +44,42 @@ public class OptimisticStoppableAuction {
 
     private final Notifier notifier = new Notifier();
 
-    private volatile AtomicReference<Bid> latestBid = new AtomicReference<>(new Bid(1L, 0L, 0L));
-
-    private volatile boolean isStopped;
-    private final Object object = new Object();
+    private final AtomicMarkableReference<Bid> latestBid = new AtomicMarkableReference<>(new Bid(1L, 0L, 0L), false);
 
     public boolean propose(Bid bid) {
-        Bid oldBid = latestBid.get();
-        if (bid.price <= oldBid.price) return false;
-        synchronized (object) {
-            if (isStopped) {
-                System.out.println(Thread.currentThread() + " propose " + bid + " rejected because auction is stopped");
+        System.out.println(Thread.currentThread() + " propose " + bid);
+        boolean success;
+        Bid oldBid;
+        boolean newBidSucceeded;
+
+        do {
+            if (latestBid.isMarked()) {
+                System.out.println(bid + " is rejected because auction is stopped");
                 return false;
             }
-            oldBid = latestBid.get();
-            if (bid.price > oldBid.price) {
-                notifier.sendOutdatedMessage(oldBid);
-                System.out.println(Thread.currentThread() + " your bid " + bid + " is approved");
-                latestBid.set(bid);
-                return true;
-            }
-            return false;
-        }
-    }
+            oldBid = latestBid.getReference();
 
-    public Bid getLatestBid() {
-        return latestBid.get();
+            if (oldBid.getPrice() < bid.getPrice()) {
+                success = latestBid.compareAndSet(oldBid, bid, false, false);
+                newBidSucceeded = true;
+            } else {
+                success = true;
+                newBidSucceeded = false;
+            }
+        } while (!success);
+
+        if (newBidSucceeded) {
+            notifier.sendOutdatedMessage(oldBid);
+        }
+        return newBidSucceeded;
     }
 
     // останавливает аукцион. Заявки больше не принимаются
     public void stopAuction() {
-        synchronized (object) {
-            isStopped = true;
-            System.out.println("auction is stopped");
-        }
+        latestBid.set(latestBid.getReference(), true);
+    }
+
+    public Bid getLatestBid() {
+        return latestBid.getReference();
     }
 }
