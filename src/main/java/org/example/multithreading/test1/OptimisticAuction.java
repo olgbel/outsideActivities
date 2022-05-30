@@ -1,6 +1,7 @@
 package org.example.multithreading.test1;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicStampedReference;
 
 /*
     Когда участник аукциона выставляет заявку, он вызывает метод propose
@@ -33,19 +34,26 @@ public class OptimisticAuction {
     }
 
     public static class Notifier {
-        public void sendOutdatedMessage(Bid bid) { /*...*/ }
+        public void sendOutdatedMessage(Bid bid) {
+            System.out.println("sendOutdatedMessage to " + bid);
+        }
     }
 
     private final Notifier notifier = new Notifier();
 
-    private AtomicReference<Bid> latestBid = new AtomicReference<>(new Bid(1L, 0L, 0L));
+    private final AtomicReference<Bid> latestBid = new AtomicReference<>(new Bid(1L, 0L, 0L));
 
     public boolean propose(Bid bid) {
-        Bid oldBid = latestBid.get();
-        if (bid.price > latestBid.get().price && latestBid.compareAndSet(oldBid, bid)) {
-            notifier.sendOutdatedMessage(oldBid);
-            return true;
-        }
+        Bid oldBid;
+        do {
+            oldBid = latestBid.get();
+            if (bid.price > oldBid.price) {
+                latestBid.set(bid);
+                notifier.sendOutdatedMessage(oldBid);
+                return true;
+            }
+        } while (latestBid.compareAndSet(oldBid, bid));
+        notifier.sendOutdatedMessage(oldBid);
         return false;
     }
 
