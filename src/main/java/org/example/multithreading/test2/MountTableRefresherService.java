@@ -95,7 +95,7 @@ public class MountTableRefresherService {
     private void invokeRefresh(List<MountTableRefresherThread> refreshThreads) {
         List<CompletableFuture<MountTableRefresherThread>> completableFutures = refreshThreads.stream()
                 .map(refreshThread -> CompletableFuture.supplyAsync(() -> {
-                    refreshThread.start();
+                    refreshThread.run();
                     return refreshThread;
                 }))
                 .collect(Collectors.toList());

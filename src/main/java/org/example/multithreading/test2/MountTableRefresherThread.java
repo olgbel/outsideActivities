@@ -1,20 +1,18 @@
 package org.example.multithreading.test2;
 
-public class MountTableRefresherThread extends Thread {
+public class MountTableRefresherThread {
 
     private volatile boolean success;
     /**
      * Admin server on which refreshed to be invoked.
      */
-    private String adminAddress;
-    private Others.MountTableManager manager;
+    private final String adminAddress;
+    private final Others.MountTableManager manager;
 
     public MountTableRefresherThread(Others.MountTableManager manager,
                                      String adminAddress) {
         this.manager = manager;
         this.adminAddress = adminAddress;
-        setName("MountTableRefresh_" + adminAddress);
-        setDaemon(true);
     }
 
     /**
@@ -29,7 +27,6 @@ public class MountTableRefresherThread extends Thread {
      * cache locally it need not to make RPC call. But R1 will make RPC calls to
      * update cache on R2 and R3.
      */
-    @Override
     public void run() {
         success = manager.refresh();
     }
