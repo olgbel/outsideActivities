@@ -102,6 +102,7 @@ public class MountTableRefresherService {
 
         try {
             CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]))
+                    .completeOnTimeout(null, cacheUpdateTimeout, TimeUnit.MILLISECONDS)
                     .thenApply(future -> completableFutures.stream().map(CompletableFuture::join).collect(Collectors.toList()))
                     .thenAccept(this::logResult)
                     .get();
